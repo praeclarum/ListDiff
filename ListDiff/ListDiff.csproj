@@ -3,7 +3,7 @@
   <PropertyGroup>
     <VersionPrefix>1.0.0</VersionPrefix>
     <Authors>praeclarum</Authors>
-    <Description>Create a diff between any two lists</Description>
+    <Description>Calculate a diff between any two lists and optionally merge them to aid in synchronizing data.</Description>
     <PackageTags>list;diff;compare;merge;sync</PackageTags>
     <PackageIconUrl>https://github.com/praeclarum/ListDiff/raw/master/Documentation/Icon.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/praeclarum/ListDiff</PackageProjectUrl>
