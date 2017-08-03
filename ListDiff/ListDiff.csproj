@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <Authors>praeclarum</Authors>
+    <Description>Create a diff between any two lists</Description>
+    <PackageTags>list;diff;compare;merge;sync</PackageTags>
+    <PackageIconUrl>https://github.com/praeclarum/ListDiff/raw/master/Documentation/Icon.png</PackageIconUrl>
+    <PackageProjectUrl>https://github.com/praeclarum/ListDiff</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/praeclarum/ListDiff/blob/master/LICENSE</PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/praeclarum/ListDiff.git</RepositoryUrl>
+
+    <TargetFramework>netstandard1.0</TargetFramework>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DocumentationFile>bin\Release\netstandard1.0\ListDiff.xml</DocumentationFile>
+  </PropertyGroup>
+
+</Project>
