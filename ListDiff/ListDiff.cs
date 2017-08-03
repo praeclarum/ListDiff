@@ -30,12 +30,27 @@ namespace ListDiff
 	public class ListDiffAction<S, D>
 	{
 		/// <summary>
-		/// The type of the action.
+		/// The action to take in order to merge the source list into the destination.
+		/// Can be either Update, Add, or Remove.
 		/// </summary>
 		public ListDiffActionType ActionType;
+
+		/// <summary>
+		/// The item from the source list that should be Updated or Removed (depending on <see cref="ActionType"/>).
+		/// </summary>
 		public S SourceItem;
+
+		/// <summary>
+		/// The item from the destination list that should be Updated or Added (depending on <see cref="ActionType"/>).
+		/// </summary>
 		public D DestinationItem;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="T:ListDiff.ListDiffAction`2"/> class.
+		/// </summary>
+		/// <param name="type">The <see cref="ActionType"/></param>
+		/// <param name="source">The <see cref="SourceItem"/></param>
+		/// <param name="dest">The <see cref="DestinationItem"/></param>
 		public ListDiffAction (ListDiffActionType type, S source, D dest)
 		{
 			ActionType = type;
@@ -43,6 +58,10 @@ namespace ListDiff
 			DestinationItem = dest;
 		}
 
+		/// <summary>
+		/// Returns a <see cref="T:System.String"/> that represents the current <see cref="T:ListDiff.ListDiffAction`2"/>.
+		/// </summary>
+		/// <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:ListDiff.ListDiffAction`2"/>.</returns>
 		public override string ToString ()
 		{
 			return string.Format ("{0} {1} {2}", ActionType, SourceItem, DestinationItem);
@@ -70,21 +89,35 @@ namespace ListDiff
 		/// </summary>
 		public bool ContainsOnlyUpdates { get; private set; }
 
-		public ListDiff (IEnumerable<S> sources, IEnumerable<D> destinations)
-			: this (sources, destinations, (a, b) => a.Equals (b))
+		/// <summary>
+		/// Construct a new diff that contains all the <see cref="Actions"/> needed to convert
+		/// the <see cref="P:sources"/> sequence into the <see cref="P:destinations"/> sequence.
+		/// The S.Equals() method is used to match source items to destination items.
+		/// </summary>
+		/// <param name="source">Source item sequence</param>
+		/// <param name="destination">Destination item sequence</param>
+		public ListDiff (IEnumerable<S> source, IEnumerable<D> destination)
+			: this (source, destination, (a, b) => a.Equals (b))
 		{
 		}
 
-		public ListDiff (IEnumerable<S> sources,
-						IEnumerable<D> destinations,
-						Func<S, D, bool> match)
+		/// <summary>
+		/// Construct a new diff that contains all the <see cref="Actions"/> needed to convert
+		/// the <see cref="P:sources"/> sequence into the <see cref="P:destinations"/> sequence.
+		/// You must provide your own comparison method <see cref="P:match"/> that
+		/// will be used to match source items to destination items.
+		/// </summary>
+		/// <param name="source">Source item sequence</param>
+		/// <param name="destination">Destination item sequence</param>
+		/// <param name="match">Predicate used to match source and destination items</param>
+		public ListDiff (IEnumerable<S> source, IEnumerable<D> destination, Func<S, D, bool> match)
 		{
-			if (sources == null) throw new ArgumentNullException ("sources");
-			if (destinations == null) throw new ArgumentNullException ("destinations");
-			if (match == null) throw new ArgumentNullException ("match");
+			if (source == null) throw new ArgumentNullException (nameof (source));
+			if (destination == null) throw new ArgumentNullException (nameof (destination));
+			if (match == null) throw new ArgumentNullException (nameof (match));
 
-			var x = new List<S> (sources);
-			var y = new List<D> (destinations);
+			var x = new List<S> (source);
+			var y = new List<D> (destination);
 
 			Actions = new List<ListDiffAction<S, D>> ();
 
@@ -134,8 +167,20 @@ namespace ListDiff
 		}
 	}
 
-	public static class ListDiffEx
+	/// <summary>
+	/// Extensions for IEnumerable and IList to generate diffs and to merge lists.
+	/// </summary>
+	public static class ListDiffExtensions
 	{
+		/// <summary>
+		/// Merges <see cref="P:source"/> into <see cref="P:desination"/> by first creating a diff
+		/// and then changing <see cref="P:source"/> in place by calling Insert and RemoveAt.
+		/// </summary>
+		/// <returns>The diff used to merge.</returns>
+		/// <param name="source">Source item list</param>
+		/// <param name="destination">Destination item sequence</param>
+		/// <param name="match">Predicate used to match source and destination items</param>
+		/// <typeparam name="T">The type of items in the list</typeparam>
 		public static ListDiff<T, T> MergeInto<T> (this IList<T> source, IEnumerable<T> destination, Func<T, T, bool> match)
 		{
 			var diff = new ListDiff<T, T> (source, destination, match);
@@ -158,6 +203,24 @@ namespace ListDiff
 			return diff;
 		}
 
+		/// <summary>
+		/// Merges <see cref="P:source"/> into <see cref="P:desination"/> by first creating a diff
+		/// and then changing <see cref="P:source"/> in place by calling Insert and RemoveAt.
+		/// The <see cref="P:create"/> function is used to create new <see cref="T:TSource"/> items
+		/// from <see cref="T:TDestination"/> items.
+		/// The <see cref="P:update"/> action is called whenever items already match between the
+		/// source and destination.
+		/// The <see cref="P:delete"/> action is called whenever items are removed from the source list.
+		/// </summary>
+		/// <returns>The diff used to merge.</returns>
+		/// <param name="source">Source item list</param>
+		/// <param name="destination">Destination item sequence</param>
+		/// <param name="match">Predicate used to match source and destination items</param>
+		/// <param name="create">Function used to create new source items from destination items when they need to be inserted</param>
+		/// <param name="update">Action invoked when source and destination items match</param>
+		/// <param name="delete">Action invoked when source items are removed</param>
+		/// <typeparam name="TSource">The type of items in the source list</typeparam>
+		/// <typeparam name="TDestination">The type of items in the destination sequence</typeparam>
 		public static ListDiff<TSource, TDestination> MergeInto<TSource, TDestination> (this IList<TSource> source, IEnumerable<TDestination> destination, Func<TSource, TDestination, bool> match, Func<TDestination, TSource> create, Action<TSource, TDestination> update, Action<TSource> delete)
 		{
 			var diff = new ListDiff<TSource, TDestination> (source, destination, match);
@@ -182,14 +245,30 @@ namespace ListDiff
 			return diff;
 		}
 
-		public static ListDiff<TSource, TDestination> Diff<TSource, TDestination> (this IEnumerable<TSource> sources, IEnumerable<TDestination> destinations)
+		/// <summary>
+		/// Construct a new diff that contains all the actions needed to convert
+		/// the <see cref="P:source"/> sequence into the <see cref="P:destination"/> sequence.
+		/// The TSource.Equals() method is used to match source items to destination items.
+		/// </summary>
+		/// <param name="source">Source item sequence</param>
+		/// <param name="destination">Destination item sequence</param>
+		public static ListDiff<TSource, TDestination> Diff<TSource, TDestination> (this IEnumerable<TSource> source, IEnumerable<TDestination> destination)
 		{
-			return new ListDiff<TSource, TDestination> (sources, destinations);
+			return new ListDiff<TSource, TDestination> (source, destination);
 		}
 
-		public static ListDiff<TSource, TDestination> Diff<TSource, TDestination> (this IEnumerable<TSource> sources, IEnumerable<TDestination> destinations, Func<TSource, TDestination, bool> match)
+		/// <summary>
+		/// Construct a new diff that contains all the actions needed to convert
+		/// the <see cref="P:source"/> sequence into the <see cref="P:destination"/> sequence.
+		/// You must provide your own comparison method <see cref="P:match"/> that
+		/// will be used to match source items to destination items.
+		/// </summary>
+		/// <param name="source">Source item sequence</param>
+		/// <param name="destination">Destination item sequence</param>
+		/// <param name="match">Predicate used to match source and destination items</param>
+		public static ListDiff<TSource, TDestination> Diff<TSource, TDestination> (this IEnumerable<TSource> source, IEnumerable<TDestination> destination, Func<TSource, TDestination, bool> match)
 		{
-			return new ListDiff<TSource, TDestination> (sources, destinations, match);
+			return new ListDiff<TSource, TDestination> (source, destination, match);
 		}
 	}
 }
