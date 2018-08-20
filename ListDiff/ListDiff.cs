@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ListDiff
 {
@@ -49,7 +50,7 @@ namespace ListDiff
 	/// </summary>
 	/// <typeparam name="S">The type of the source list elements</typeparam>
 	/// <typeparam name="D">The type of the destination list elements</typeparam>
-	public class ListDiffAction<S, D>
+	public struct ListDiffAction<S, D>
 	{
 		/// <summary>
 		/// The action to take in order to merge the source list into the destination.
@@ -138,8 +139,8 @@ namespace ListDiff
 			if (destination == null) throw new ArgumentNullException (nameof (destination));
 			if (match == null) throw new ArgumentNullException (nameof (match));
 
-			var x = new List<S> (source);
-			var y = new List<D> (destination);
+			IList<S> x = source as IList<S> ?? source.ToArray ();
+			IList<D> y = destination as IList<D> ?? destination.ToArray ();
 
 			Actions = new List<ListDiffAction<S, D>> ();
 
@@ -168,7 +169,7 @@ namespace ListDiff
 			GenDiff (c, x, y, m, n, match);
 		}
 
-		void GenDiff (int[,] c, List<S> x, List<D> y, int i, int j, Func<S, D, bool> match)
+		void GenDiff (int[,] c, IList<S> x, IList<D> y, int i, int j, Func<S, D, bool> match)
 		{
 			if (i > 0 && j > 0 && match (x[i - 1], y[j - 1])) {
 				GenDiff (c, x, y, i - 1, j - 1, match);
