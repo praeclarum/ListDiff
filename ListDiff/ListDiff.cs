@@ -190,6 +190,10 @@ namespace ListDiff
 			}
 		}
 
+		/// <summary>
+		/// Returns a <see cref="T:System.String"/> that represents the current <see cref="T:ListDiff.ListDiff`2"/>.
+		/// </summary>
+		/// <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:ListDiff.ListDiff`2"/>.</returns>
 		public override string ToString ()
 		{
 			var sb = new StringBuilder ();
