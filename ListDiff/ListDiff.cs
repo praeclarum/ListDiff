@@ -178,12 +178,12 @@ namespace ListDiff
 				if (j > 0 && (i == 0 || c[i, j - 1] >= c[i - 1, j])) {
 					GenDiff (c, x, y, i, j - 1, match);
 					ContainsOnlyUpdates = false;
-					Actions.Add (new ListDiffAction<S, D> (ListDiffActionType.Add, default (S), y[j - 1]));
+					Actions.Add (new ListDiffAction<S, D> (ListDiffActionType.Add, default, y[j - 1]));
 				}
 				else if (i > 0 && (j == 0 || c[i, j - 1] < c[i - 1, j])) {
 					GenDiff (c, x, y, i - 1, j, match);
 					ContainsOnlyUpdates = false;
-					Actions.Add (new ListDiffAction<S, D> (ListDiffActionType.Remove, x[i - 1], default (D)));
+					Actions.Add (new ListDiffAction<S, D> (ListDiffActionType.Remove, x[i - 1], default));
 				}
 			}
 		}
