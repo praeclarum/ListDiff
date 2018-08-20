@@ -195,7 +195,7 @@ namespace ListDiff
 	public static class ListDiffExtensions
 	{
 		/// <summary>
-		/// Merges <see cref="P:source"/> into <see cref="P:desination"/> by first creating a diff
+		/// Merges <see cref="P:source"/> into <see cref="P:destination"/> by first creating a diff
 		/// and then changing <see cref="P:source"/> in place by calling Insert and RemoveAt.
 		/// </summary>
 		/// <returns>The diff used to merge.</returns>
@@ -226,7 +226,7 @@ namespace ListDiff
 		}
 
 		/// <summary>
-		/// Merges <see cref="P:source"/> into <see cref="P:desination"/> by first creating a diff
+		/// Merges <see cref="P:source"/> into <see cref="P:destination"/> by first creating a diff
 		/// and then changing <see cref="P:source"/> in place by calling Insert and RemoveAt.
 		/// The <see cref="P:create"/> function is used to create new <see cref="T:TSource"/> items
 		/// from <see cref="T:TDestination"/> items.
