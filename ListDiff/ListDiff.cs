@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Linq;
 
 namespace ListDiff
@@ -187,6 +188,29 @@ namespace ListDiff
 					Actions.Add (new ListDiffAction<S, D> (ListDiffActionType.Remove, x[i - 1], default));
 				}
 			}
+		}
+
+		public override string ToString ()
+		{
+			var sb = new StringBuilder ();
+
+			foreach (var action in Actions) {
+				if (action.ActionType == ListDiffActionType.Update) {
+					sb.Append (Convert.ToString (action.SourceItem));
+				}
+				else if (action.ActionType == ListDiffActionType.Add) {
+					sb.Append ("+(");
+					sb.Append (Convert.ToString (action.DestinationItem));
+					sb.Append (")");
+				}
+				else if (action.ActionType == ListDiffActionType.Remove) {
+					sb.Append ("-(");
+					sb.Append (Convert.ToString (action.SourceItem));
+					sb.Append (")");
+				}
+			}
+
+			return sb.ToString ();
 		}
 	}
 
