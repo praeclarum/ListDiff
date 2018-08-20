@@ -22,7 +22,7 @@ indent_style = tab
 tab_width = 4
 
 # New line preferences
-csharp_new_line_before_open_brace = types:methods
+csharp_new_line_before_open_brace = accessors, anonymous_methods, anonymous_types, events, indexers, lambdas, local_functions, methods, object_collection_array_initializers, properties, types
 csharp_new_line_before_else = true
 csharp_new_line_before_catch = true
 csharp_new_line_before_finally = true
