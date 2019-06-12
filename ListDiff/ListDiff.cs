@@ -148,12 +148,23 @@ namespace ListDiff
 			var m = x.Count;
 			var n = y.Count;
 
+			var start = 0;
+
+			while (start < m && start < n && match (x[start], y[start])) {
+				start++;
+			}
+
+			while (start < m && start < n && match (x[m - 1], y[n - 1])) {
+				m--;
+				n--;
+			}
+
 			//
 			// Construct the C matrix
 			//
-			var c = new int[m + 1, n + 1];
-			for (var i = 1; i <= m; i++) {
-				for (var j = 1; j <= n; j++) {
+			var c = new int[m - start + 1, n - start + 1];
+			for (var i = 1; i <= m - start; i++) {
+				for (var j = 1; j <= n - start; j++) {
 					if (match (x[i - 1], y[j - 1])) {
 						c[i, j] = c[i - 1, j - 1] + 1;
 					}
@@ -166,24 +177,32 @@ namespace ListDiff
 			//
 			// Generate the actions
 			//
+			for (int i = 0; i < start; i++) {
+				Actions.Add (new ListDiffAction<S, D> (ListDiffActionType.Update, x[i], y[i]));
+			}
+
 			ContainsOnlyUpdates = true;
-			GenDiff (c, x, y, m, n, match);
+			GenDiff (c, x, y, start, m, n, match);
+
+			for (int i = 0; i < x.Count - m; i++) {
+				Actions.Add (new ListDiffAction<S, D> (ListDiffActionType.Update, x[m + i], y[n + i]));
+			}
 		}
 
-		void GenDiff (int[,] c, IList<S> x, IList<D> y, int i, int j, Func<S, D, bool> match)
+		void GenDiff (int[,] c, IList<S> x, IList<D> y, int start, int i, int j, Func<S, D, bool> match)
 		{
-			if (i > 0 && j > 0 && match (x[i - 1], y[j - 1])) {
-				GenDiff (c, x, y, i - 1, j - 1, match);
+			if (i > start && j > start && match (x[i - 1], y[j - 1])) {
+				GenDiff (c, x, y, start, i - 1, j - 1, match);
 				Actions.Add (new ListDiffAction<S, D> (ListDiffActionType.Update, x[i - 1], y[j - 1]));
 			}
 			else {
-				if (j > 0 && (i == 0 || c[i, j - 1] >= c[i - 1, j])) {
-					GenDiff (c, x, y, i, j - 1, match);
+				if (j > start && (i == start || c[i - start, j - start - 1] >= c[i - start - 1, j - start])) {
+					GenDiff (c, x, y, start, i, j - 1, match);
 					ContainsOnlyUpdates = false;
 					Actions.Add (new ListDiffAction<S, D> (ListDiffActionType.Add, default, y[j - 1]));
 				}
-				else if (i > 0 && (j == 0 || c[i, j - 1] < c[i - 1, j])) {
-					GenDiff (c, x, y, i - 1, j, match);
+				else if (i > start && (j == start || c[i - start, j - start - 1] < c[i - start - 1, j - start])) {
+					GenDiff (c, x, y, start, i - 1, j, match);
 					ContainsOnlyUpdates = false;
 					Actions.Add (new ListDiffAction<S, D> (ListDiffActionType.Remove, x[i - 1], default));
 				}
