@@ -26,6 +26,28 @@ namespace ListDiffTests
 			Assert.Equal (expectedDiff, diff.ToString ());
 		}
 
+		[Theory]
+		[InlineData (1000)]
+		[InlineData (10000)]
+		[InlineData (100000)]
+		public void DiffMiddleModificationOfLongList (int listSize)
+		{
+			var sb = new System.Text.StringBuilder ();
+			for (int i = 0; i < listSize / 10; i++) {
+				sb.Append ("0123456789");
+			}
+
+			var original = sb.ToString ();
+			var middleIndex = original.Length / 2;
+			var middleItem = original[middleIndex];
+			var modified = sb.ToString ().Remove (middleIndex, 1);
+			var expectedDiff = modified.Insert (middleIndex, string.Format("-({0})", middleItem));
+
+			var diff = original.Diff (modified);
+
+			Assert.Equal (expectedDiff, diff.ToString ());
+		}
+
 		[Fact]
 		public void Insert ()
 		{
