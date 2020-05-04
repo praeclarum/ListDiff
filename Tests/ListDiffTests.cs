@@ -1,4 +1,5 @@
 using ListDiff;
+using static ListDiff.DiffModule;
 using Xunit;
 
 namespace ListDiffTests
@@ -26,7 +27,7 @@ namespace ListDiffTests
 
 			Assert.Equal (expectedDiff, diff1.ToString ());
 
-			var diff2 = ListDiff.ListDiff.Diff (left, right, (s, _) => s.ToString (), d => $"+({d})", s => $"-({s})");
+			var diff2 = Diff (left, right, (s, _) => s.ToString (), d => $"+({d})", s => $"-({s})");
 
 			Assert.Equal (expectedDiff, string.Join (string.Empty, diff2));
 		}
@@ -52,7 +53,7 @@ namespace ListDiffTests
 
 			Assert.Equal (expectedDiff, diff1.ToString ());
 
-			var diff2 = ListDiff.ListDiff.Diff (original, modified, (s, _) => s.ToString (), d => $"+({d})", s => $"-({s})");
+			var diff2 = Diff (original, modified, (s, _) => s.ToString (), d => $"+({d})", s => $"-({s})");
 
 			Assert.Equal (expectedDiff, string.Join (string.Empty, diff2));
 		}

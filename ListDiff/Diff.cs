@@ -26,7 +26,7 @@ using System.Linq;
 
 namespace ListDiff
 {
-	static partial class ListDiff
+	static partial class DiffModule
 	{
 		public static List<(A, T, T)> Diff<T, A> (IEnumerable<T> source, IEnumerable<T> destination,
 		                                          A update, A add, A remove) =>

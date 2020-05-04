@@ -23,6 +23,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static ListDiff.DiffModule;
 
 namespace ListDiff
 {
@@ -135,11 +136,11 @@ namespace ListDiff
 		/// <param name="match">Predicate used to match source and destination items</param>
 		public ListDiff (IEnumerable<S> source, IEnumerable<D> destination, Func<S, D, bool> match)
 		{
-			Actions = ListDiff.Diff (source, destination, match,
-			                         (s, d) => new ListDiffAction<S, D> (ListDiffActionType.Update, s, d),
-									 d      => new ListDiffAction<S, D> (ListDiffActionType.Add, default, d),
-									 s      => new ListDiffAction<S, D> (ListDiffActionType.Remove, s, default),
-									 out var containsOnlyUpdates);
+			Actions = Diff (source, destination, match,
+			                (s, d) => new ListDiffAction<S, D> (ListDiffActionType.Update, s, d),
+							d      => new ListDiffAction<S, D> (ListDiffActionType.Add, default, d),
+							s      => new ListDiffAction<S, D> (ListDiffActionType.Remove, s, default),
+							out var containsOnlyUpdates);
 			ContainsOnlyUpdates = containsOnlyUpdates;
 		}
 
@@ -296,5 +297,5 @@ namespace ListDiff
 		}
 	}
 
-	public partial class ListDiff {}
+	public partial class DiffModule {}
 }
