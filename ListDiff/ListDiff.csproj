@@ -11,4 +11,8 @@
     <DocumentationFile>bin\Release\netstandard1.0\ListDiff.xml</DocumentationFile>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.0'">
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
+
 </Project>

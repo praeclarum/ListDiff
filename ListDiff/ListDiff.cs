@@ -23,7 +23,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Linq;
 
 namespace ListDiff
 {
@@ -136,57 +135,12 @@ namespace ListDiff
 		/// <param name="match">Predicate used to match source and destination items</param>
 		public ListDiff (IEnumerable<S> source, IEnumerable<D> destination, Func<S, D, bool> match)
 		{
-			if (source == null) throw new ArgumentNullException (nameof (source));
-			if (destination == null) throw new ArgumentNullException (nameof (destination));
-			if (match == null) throw new ArgumentNullException (nameof (match));
-
-			IList<S> x = source as IList<S> ?? source.ToArray ();
-			IList<D> y = destination as IList<D> ?? destination.ToArray ();
-
-			Actions = new List<ListDiffAction<S, D>> ();
-
-			var m = x.Count;
-			var n = y.Count;
-
-			var start = 0;
-
-			while (start < m && start < n && match (x[start], y[start])) {
-				start++;
-			}
-
-			while (start < m && start < n && match (x[m - 1], y[n - 1])) {
-				m--;
-				n--;
-			}
-
-			//
-			// Construct the C matrix
-			//
-			var c = new int[m - start + 1, n - start + 1];
-			for (var i = 1; i <= m - start; i++) {
-				for (var j = 1; j <= n - start; j++) {
-					if (match (x[i - 1], y[j - 1])) {
-						c[i, j] = c[i - 1, j - 1] + 1;
-					}
-					else {
-						c[i, j] = Math.Max (c[i, j - 1], c[i - 1, j]);
-					}
-				}
-			}
-
-			//
-			// Generate the actions
-			//
-			for (int i = 0; i < start; i++) {
-				Actions.Add (new ListDiffAction<S, D> (ListDiffActionType.Update, x[i], y[i]));
-			}
-
-			ContainsOnlyUpdates = true;
-			GenDiff (c, x, y, start, m, n, match);
-
-			for (int i = 0; i < x.Count - m; i++) {
-				Actions.Add (new ListDiffAction<S, D> (ListDiffActionType.Update, x[m + i], y[n + i]));
-			}
+			Actions = ListDiff.Diff (source, destination, match,
+			                         (s, d) => new ListDiffAction<S, D> (ListDiffActionType.Update, s, d),
+									 d      => new ListDiffAction<S, D> (ListDiffActionType.Add, default, d),
+									 s      => new ListDiffAction<S, D> (ListDiffActionType.Remove, s, default),
+									 out var containsOnlyUpdates);
+			ContainsOnlyUpdates = containsOnlyUpdates;
 		}
 
 		void GenDiff (int[,] c, IList<S> x, IList<D> y, int start, int i, int j, Func<S, D, bool> match)
@@ -341,4 +295,6 @@ namespace ListDiff
 			return new ListDiff<TSource, TDestination> (source, destination, match);
 		}
 	}
+
+	public partial class ListDiff {}
 }
