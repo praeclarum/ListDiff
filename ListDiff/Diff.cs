@@ -26,23 +26,38 @@ using System.Linq;
 
 namespace ListDiff
 {
+	/// <summary>
+	/// TODO
+	/// </summary>
 	static partial class DiffModule
 	{
+		/// <summary>
+		/// TODO
+		/// </summary>
 		public static List<(A, T, T)> Diff<T, A> (IEnumerable<T> source, IEnumerable<T> destination,
 		                                          A update, A add, A remove) =>
 			Diff (source, destination, update, add, remove, out _);
 
+		/// <summary>
+		/// TODO
+		/// </summary>
 		public static List<(A, T, T)> Diff<T, A> (IEnumerable<T> source, IEnumerable<T> destination,
 												  A update, A add, A remove,
 												  out bool containsOnlyUpdates) =>
 			Diff (source, destination, (s, d) => EqualityComparer<T>.Default.Equals (s, d),
 			      update, add, remove, out containsOnlyUpdates);
 
+		/// <summary>
+		/// TODO
+		/// </summary>
 		public static List<(A, S, D)> Diff<S, D, A> (IEnumerable<S> source, IEnumerable<D> destination,
 		                                             Func<S, D, bool> match,
 		                                             A update, A add, A remove) =>
 			Diff (source, destination, match, update, add, remove, out _);
 
+		/// <summary>
+		/// TODO
+		/// </summary>
 		public static List<(A, S, D)> Diff<S, D, A> (IEnumerable<S> source, IEnumerable<D> destination,
 		                                             Func<S, D, bool> match,
 		                                             A update, A add, A remove,
@@ -52,21 +67,33 @@ namespace ListDiff
 											  s => (remove, s, default),
 											  out containsOnlyUpdates);
 
+		/// <summary>
+		/// TODO
+		/// </summary>
 		public static List<R> Diff<T, R> (IEnumerable<T> source, IEnumerable<T> destination,
 		                                  Func<T, T, R> updateResult, Func<T, R> addResult, Func<T, R> removeResult) =>
 			Diff (source, destination, updateResult, addResult, removeResult, out _);
 
+		/// <summary>
+		/// TODO
+		/// </summary>
 		public static List<R> Diff<T, R> (IEnumerable<T> source, IEnumerable<T> destination,
 		                                  Func<T, T, R> updateResult, Func<T, R> addResult, Func<T, R> removeResult,
 		                                  out bool containsOnlyUpdates) =>
 			Diff (source, destination, (s, d) => EqualityComparer<T>.Default.Equals (s, d),
 			      updateResult, addResult, removeResult, out containsOnlyUpdates);
 
+		/// <summary>
+		/// TODO
+		/// </summary>
 		public static List<R> Diff<S, D, R> (IEnumerable<S> source, IEnumerable<D> destination,
 											 Func<S, D, bool> match,
 											 Func<S, D, R> updateResult, Func<D, R> addResult, Func<S, R> removeResult) =>
 			Diff (source, destination, match, updateResult, addResult, removeResult, out _);
 
+		/// <summary>
+		/// TODO
+		/// </summary>
 		public static List<R> Diff<S, D, R> (IEnumerable<S> source, IEnumerable<D> destination,
 		                                     Func<S, D, bool> match,
 											 Func<S, D, R> updateResult, Func<D, R> addResult, Func<S, R> removeResult,
