@@ -1,4 +1,5 @@
 using ListDiff;
+using static ListDiff.DiffModule;
 using Xunit;
 
 namespace ListDiffTests
@@ -22,8 +23,13 @@ namespace ListDiffTests
 		[InlineData ("abc", "", "-(a)-(b)-(c)")]
 		public void SimpleCases (string left, string right, string expectedDiff)
 		{
-			var diff = left.Diff (right);
-			Assert.Equal (expectedDiff, diff.ToString ());
+			var diff1 = left.Diff (right);
+
+			Assert.Equal (expectedDiff, diff1.ToString ());
+
+			var diff2 = Diff (left, right, (s, _) => s.ToString (), d => $"+({d})", s => $"-({s})");
+
+			Assert.Equal (expectedDiff, string.Join (string.Empty, diff2));
 		}
 
 		[Theory]
@@ -43,9 +49,13 @@ namespace ListDiffTests
 			var modified = sb.ToString ().Remove (middleIndex, 1);
 			var expectedDiff = modified.Insert (middleIndex, string.Format("-({0})", middleItem));
 
-			var diff = original.Diff (modified);
+			var diff1 = original.Diff (modified);
 
-			Assert.Equal (expectedDiff, diff.ToString ());
+			Assert.Equal (expectedDiff, diff1.ToString ());
+
+			var diff2 = Diff (original, modified, (s, _) => s.ToString (), d => $"+({d})", s => $"-({s})");
+
+			Assert.Equal (expectedDiff, string.Join (string.Empty, diff2));
 		}
 
 		[Fact]
