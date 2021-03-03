@@ -62,12 +62,12 @@ namespace ListDiff
 		/// <summary>
 		/// The item from the source list that should be Updated or Removed (depending on <see cref="ActionType"/>).
 		/// </summary>
-		public S SourceItem;
+		public S? SourceItem;
 
 		/// <summary>
 		/// The item from the destination list that should be Updated or Added (depending on <see cref="ActionType"/>).
 		/// </summary>
-		public D DestinationItem;
+		public D? DestinationItem;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="T:ListDiff.ListDiffAction`2"/> class.
@@ -75,7 +75,7 @@ namespace ListDiff
 		/// <param name="type">The <see cref="ActionType"/></param>
 		/// <param name="source">The <see cref="SourceItem"/></param>
 		/// <param name="dest">The <see cref="DestinationItem"/></param>
-		public ListDiffAction (ListDiffActionType type, S source, D dest)
+		public ListDiffAction (ListDiffActionType type, S? source, D? dest)
 		{
 			ActionType = type;
 			SourceItem = source;
@@ -121,7 +121,7 @@ namespace ListDiff
 		/// <param name="source">Source item sequence</param>
 		/// <param name="destination">Destination item sequence</param>
 		public ListDiff (IEnumerable<S> source, IEnumerable<D> destination)
-			: this (source, destination, (a, b) => a.Equals (b))
+			: this (source, destination, (a, b) => a!.Equals (b))
 		{
 		}
 
@@ -136,9 +136,12 @@ namespace ListDiff
 		/// <param name="match">Predicate used to match source and destination items</param>
 		public ListDiff (IEnumerable<S> source, IEnumerable<D> destination, Func<S, D, bool> match)
 		{
-			if (source == null) throw new ArgumentNullException (nameof (source));
-			if (destination == null) throw new ArgumentNullException (nameof (destination));
-			if (match == null) throw new ArgumentNullException (nameof (match));
+			if (source == null)
+				throw new ArgumentNullException (nameof (source));
+			if (destination == null)
+				throw new ArgumentNullException (nameof (destination));
+			if (match == null)
+				throw new ArgumentNullException (nameof (match));
 
 			IList<S> x = source as IList<S> ?? source.ToArray ();
 			IList<D> y = destination as IList<D> ?? destination.ToArray ();
@@ -189,22 +192,62 @@ namespace ListDiff
 			}
 		}
 
-		void GenDiff (int[,] c, IList<S> x, IList<D> y, int start, int i, int j, Func<S, D, bool> match)
+		struct GenDiffFrame
 		{
-			if (i > start && j > start && match (x[i - 1], y[j - 1])) {
-				GenDiff (c, x, y, start, i - 1, j - 1, match);
-				Actions.Add (new ListDiffAction<S, D> (ListDiffActionType.Update, x[i - 1], y[j - 1]));
-			}
-			else {
-				if (j > start && (i == start || c[i - start, j - start - 1] >= c[i - start - 1, j - start])) {
-					GenDiff (c, x, y, start, i, j - 1, match);
-					ContainsOnlyUpdates = false;
-					Actions.Add (new ListDiffAction<S, D> (ListDiffActionType.Add, default, y[j - 1]));
-				}
-				else if (i > start && (j == start || c[i - start, j - start - 1] < c[i - start - 1, j - start])) {
-					GenDiff (c, x, y, start, i - 1, j, match);
-					ContainsOnlyUpdates = false;
-					Actions.Add (new ListDiffAction<S, D> (ListDiffActionType.Remove, x[i - 1], default));
+			public int I;
+			public int J;
+			public int State;
+		}
+
+		void GenDiff (int[,] c, IList<S> x, IList<D> y, int start, int ii, int ij, Func<S, D, bool> match)
+		{
+			var stack = new List<GenDiffFrame> {
+				new GenDiffFrame { I = ii, J = ij }
+			};
+			while (stack.Count > 0) {
+				var fp = stack.Count - 1;
+				var frame = stack[fp];
+				var fi = frame.I;
+				var fj = frame.J;
+				switch (frame.State) {
+					case 0:
+						if (fi > start && fj > start && match (x[fi - 1], y[fj - 1])) {
+							frame.State = 1;
+							stack[fp] = frame;
+							stack.Add (new GenDiffFrame { I = fi - 1, J = fj - 1 });
+						}
+						else {
+							if (fj > start && (fi == start || c[fi - start, fj - start - 1] >= c[fi - start - 1, fj - start])) {
+								frame.State = 2;
+								stack[fp] = frame;
+								stack.Add (new GenDiffFrame { I = fi, J = fj - 1 });
+								ContainsOnlyUpdates = false;
+							}
+							else if (fi > start && (fj == start || c[fi - start, fj - start - 1] < c[fi - start - 1, fj - start])) {
+								frame.State = 3;
+								stack[fp] = frame;
+								stack.Add (new GenDiffFrame { I = fi - 1, J = fj });
+								ContainsOnlyUpdates = false;
+							}
+							else {
+								stack.RemoveAt (fp);
+							}
+						}
+						break;
+					case 1:
+						Actions.Add (new ListDiffAction<S, D> (ListDiffActionType.Update, x[fi - 1], y[fj - 1]));
+						stack.RemoveAt (fp);
+						break;
+					case 2:
+						Actions.Add (new ListDiffAction<S, D> (ListDiffActionType.Add, default, y[fj - 1]));
+						stack.RemoveAt (fp);
+						break;
+					case 3:
+						Actions.Add (new ListDiffAction<S, D> (ListDiffActionType.Remove, x[fi - 1], default));
+						stack.RemoveAt (fp);
+						break;
+					default:
+						throw new InvalidOperationException ("Invalid diff generator state");
 				}
 			}
 		}
@@ -259,7 +302,7 @@ namespace ListDiff
 
 			foreach (var a in diff.Actions) {
 				if (a.ActionType == ListDiffActionType.Add) {
-					source.Insert (p, a.DestinationItem);
+					source.Insert (p, a.DestinationItem!);
 					p++;
 				}
 				else if (a.ActionType == ListDiffActionType.Remove) {
@@ -299,15 +342,15 @@ namespace ListDiff
 
 			foreach (var a in diff.Actions) {
 				if (a.ActionType == ListDiffActionType.Add) {
-					source.Insert (p, create (a.DestinationItem));
+					source.Insert (p, create (a.DestinationItem!));
 					p++;
 				}
 				else if (a.ActionType == ListDiffActionType.Remove) {
-					delete (a.SourceItem);
+					delete (a.SourceItem!);
 					source.RemoveAt (p);
 				}
 				else {
-					update (a.SourceItem, a.DestinationItem);
+					update (a.SourceItem!, a.DestinationItem!);
 					p++;
 				}
 			}
