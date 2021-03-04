@@ -60,12 +60,14 @@ namespace ListDiffTests
 			Assert.Equal (ListDiffActionType.Add, diff.Actions[1].ActionType);
 		}
 
-		[Fact]
-		public void RemovesAndAdds ()
+		[Theory]
+		[InlineData ("", "")]
+		[InlineData ("", "abc")]
+		[InlineData ("abc", "")]
+		[InlineData ("abc", "abc")]
+		[InlineData ("abcde34fg", "bXceYZf348n")]
+		public void RemovesAndAdds (string source, string dest)
 		{
-			var source = "abcde34fg";
-			var dest = "bXceYZf348n";
-
 			var (rems, adds) = source.Diff (dest).GetRemovesAndAdds ();
 
 			var msource = new List<char> (source);
