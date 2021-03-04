@@ -65,18 +65,42 @@ namespace ListDiffTests
 		[InlineData ("", "abc")]
 		[InlineData ("abc", "")]
 		[InlineData ("abc", "abc")]
+		[InlineData ("abc", "abcd")]
+		[InlineData ("abc", "ab")]
+		[InlineData ("abc", "dabc")]
+		[InlineData ("abc", "bc")]
 		[InlineData ("abcde34fg", "bXceYZf348n")]
 		public void RemovesAndAdds (string source, string dest)
 		{
 			var (rems, adds) = source.Diff (dest).GetRemovesAndAdds ();
 
+			//
+			// Assert grouping on trivial cases
+			//
+			if (source.Length > 0 && dest.Length == 0) {
+				Assert.Single (rems);
+				Assert.Equal (0, rems[0].Index);
+				Assert.Equal (source.Length, rems[0].Count);
+			}
+			if (source.Length == 0 && dest.Length > 0) {
+				Assert.Single (adds);
+				Assert.Equal (0, adds[0].Index);
+				Assert.Equal (dest.Length, adds[0].Items.Length);
+			}
+			if (source == dest) {
+				Assert.Empty (adds);
+				Assert.Empty (rems);
+			}
+
+			//
+			// Test the operations
+			//
 			var msource = new List<char> (source);
 			foreach (var r in rems) {
 				for (var i = 0; i < r.Count; i++) {
 					msource.RemoveAt (r.Index);
 				}
 			}
-
 			foreach (var a in adds) {
 				var i = a.Index;
 				foreach (var item in a.Items) {
@@ -84,7 +108,6 @@ namespace ListDiffTests
 					i++;
 				}
 			}
-
 			var ssource = new string (msource.ToArray ());
 			Assert.Equal (dest, ssource);
 		}

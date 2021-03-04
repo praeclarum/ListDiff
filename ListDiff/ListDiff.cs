@@ -285,7 +285,7 @@ namespace ListDiff
 		}
 
 		/// <summary>
-		/// Returns two list of a set of operations to perform on the source list
+		/// Returns two sets of operations to perform on the source list
 		/// in order to turn it into the destination list.
 		/// You should apply all of the removes first followed by the adds
 		/// in order for the indexing to be correct.
@@ -315,10 +315,21 @@ namespace ListDiff
 				}
 			}
 
-			var orems = rems.Select(x => (x, 1)).ToArray ();
-			var oadds = adds.Select(x => (x.Index, new[] { x.Item })).ToArray ();
+			var orems = new List<(int Index, int Count)> ();
+			var rn = rems.Count;
+			for (var ri = 0; ri < rn;) {
+				var index = rems[ri];
+				var sri = ri;
+				ri++;
+				while (ri < rn && rems[ri] == index) {
+					ri++;
+				}
+				orems.Add ((index, ri - sri));
+			}
+			var oadds = adds.Select (x => (x.Index, new[] { x.Item }));
+			//var oadds = new List<(int Index, D[] Items)> ();
 
-			return (orems, oadds);
+			return (orems.ToArray(), oadds.ToArray());
 		}
 	}
 
