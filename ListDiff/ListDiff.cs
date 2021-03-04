@@ -296,9 +296,12 @@ namespace ListDiff
 			var rems = new List<int> ();
 			var adds = new List<(int Index, D Item)> ();
 
+			//
+			// Calculate indices assuming all removes
+			// happend before the adds
+			//
 			var remIndex = 0;
 			var addIndex = 0;
-
 			foreach (var action in Actions) {
 				switch (action.ActionType) {
 					case ListDiffActionType.Update:
@@ -315,6 +318,9 @@ namespace ListDiff
 				}
 			}
 
+			//
+			// Group the removes and adds into ranges
+			//
 			var orems = new List<(int Index, int Count)> ();
 			var rn = rems.Count;
 			for (var ri = 0; ri < rn;) {
@@ -326,8 +332,20 @@ namespace ListDiff
 				}
 				orems.Add ((index, ri - sri));
 			}
-			var oadds = adds.Select (x => (x.Index, new[] { x.Item }));
-			//var oadds = new List<(int Index, D[] Items)> ();
+			var oadds = new List<(int Index, D[] Items)> ();
+			var an = adds.Count;
+			for (var ai = 0; ai < an;) {
+				var (index, item) = adds[ai];
+				var items = new List<D> { item };
+				ai++;
+				var eindex = index + 1;
+				while (ai < an && adds[ai].Index == eindex) {
+					items.Add (adds[ai].Item);
+					eindex++;
+					ai++;
+				}
+				oadds.Add ((index, items.ToArray ()));
+			}
 
 			return (orems.ToArray(), oadds.ToArray());
 		}
