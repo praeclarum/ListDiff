@@ -293,7 +293,7 @@ namespace ListDiff
 		/// <returns>An array of the indices of items to remove and an array of items to add.</returns>
 		public ((int Index, int Count)[] Removes, (int Index, D[] Items)[] Adds) GetRemovesAndAdds ()
 		{
-			var rems = new List<(int RemIndex, int AddIndex)> ();
+			var rems = new List<int> ();
 			var adds = new List<(int Index, D Item)> ();
 
 			var remIndex = 0;
@@ -310,22 +310,12 @@ namespace ListDiff
 						addIndex++;
 						break;
 					case ListDiffActionType.Remove:
-						rems.Add ((remIndex, addIndex));
-						addIndex++;
+						rems.Add (remIndex);
 						break;
 				}
 			}
 
-			foreach (var remi in rems) {
-				for (int ia = 0; ia < adds.Count; ia++) {
-					var (index, item) = adds[ia];
-					if (remi.RemIndex < index) {
-						adds[ia] = (index - 1, item);
-					}
-				}
-			}
-
-			var orems = rems.Select(x => (x.RemIndex, 1)).ToArray ();
+			var orems = rems.Select(x => (x, 1)).ToArray ();
 			var oadds = adds.Select(x => (x.Index, new[] { x.Item })).ToArray ();
 
 			return (orems, oadds);
