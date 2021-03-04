@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ListDiff;
 using Xunit;
 
@@ -54,6 +55,36 @@ namespace ListDiffTests
 			var source = "ac";
 			var destination = "abc";
 			var diff = source.Diff (destination);
+
+			Assert.Equal (3, diff.Actions.Count);
+			Assert.Equal (ListDiffActionType.Add, diff.Actions[1].ActionType);
+		}
+
+		[Fact]
+		public void RemovesAndAdds ()
+		{
+			var source = "abcde34fg";
+			var dest = "bXceYZf348n";
+
+			var (rems, adds) = source.Diff (dest).GetRemovesAndAdds ();
+
+			var msource = new List<char> (source);
+			foreach (var r in rems) {
+				for (var i = 0; i < r.Count; i++) {
+					msource.RemoveAt (r.Index);
+				}
+			}
+
+			foreach (var a in adds) {
+				var i = a.Index;
+				foreach (var item in a.Items) {
+					msource.Insert (i, item);
+					i++;
+				}
+			}
+
+			var ssource = new string (msource.ToArray ());
+			Assert.Equal (dest, ssource);
 		}
 	}
 }

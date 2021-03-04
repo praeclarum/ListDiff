@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace ListDiff
 {
@@ -88,7 +89,11 @@ namespace ListDiff
 		/// <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:ListDiff.ListDiffAction`2"/>.</returns>
 		public override string ToString ()
 		{
-			return string.Format ("{0} {1} {2}", ActionType, SourceItem, DestinationItem);
+			return ActionType switch {
+				ListDiffActionType.Update => $"Update {SourceItem} to {DestinationItem}",
+				ListDiffActionType.Add => $"Add {DestinationItem}",
+				_ => $"Remove {SourceItem}",
+			};
 		}
 	}
 
@@ -277,6 +282,53 @@ namespace ListDiff
 			}
 
 			return sb.ToString ();
+		}
+
+		/// <summary>
+		/// Returns two list of a set of operations to perform on the source list
+		/// in order to turn it into the destination list.
+		/// You should apply all of the removes first followed by the adds
+		/// in order for the indexing to be correct.
+		/// </summary>
+		/// <returns>An array of the indices of items to remove and an array of items to add.</returns>
+		public ((int Index, int Count)[] Removes, (int Index, D[] Items)[] Adds) GetRemovesAndAdds ()
+		{
+			var rems = new List<(int RemIndex, int AddIndex)> ();
+			var adds = new List<(int Index, D Item)> ();
+
+			var remIndex = 0;
+			var addIndex = 0;
+
+			foreach (var action in Actions) {
+				switch (action.ActionType) {
+					case ListDiffActionType.Update:
+						remIndex++;
+						addIndex++;
+						break;
+					case ListDiffActionType.Add:
+						adds.Add ((addIndex, action.DestinationItem!));
+						addIndex++;
+						break;
+					case ListDiffActionType.Remove:
+						rems.Add ((remIndex, addIndex));
+						addIndex++;
+						break;
+				}
+			}
+
+			foreach (var remi in rems) {
+				for (int ia = 0; ia < adds.Count; ia++) {
+					var (index, item) = adds[ia];
+					if (remi.RemIndex < index) {
+						adds[ia] = (index - 1, item);
+					}
+				}
+			}
+
+			var orems = rems.Select(x => (x.RemIndex, 1)).ToArray ();
+			var oadds = adds.Select(x => (x.Index, new[] { x.Item })).ToArray ();
+
+			return (orems, oadds);
 		}
 	}
 
