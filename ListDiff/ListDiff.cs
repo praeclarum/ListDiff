@@ -388,6 +388,7 @@ namespace ListDiff
 						break;
 					case ListDiffActionType.Add:
 						adds.Add ((addIndex, action.DestinationItem!));
+						addIndex++;
 						break;
 					case ListDiffActionType.Remove:
 						rems.Add (remIndex);
@@ -418,8 +419,10 @@ namespace ListDiff
 				var (index, item) = adds[ai];
 				var items = new List<D> { item };
 				ai++;
-				while (ai < an && adds[ai].Index == index) {
+				var eindex = index + 1;
+				while (ai < an && adds[ai].Index == eindex) {
 					items.Add (adds[ai].Item);
+					eindex++;
 					ai++;
 				}
 				oadds.Add ((index, items.ToArray ()));
