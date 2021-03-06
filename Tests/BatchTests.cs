@@ -43,7 +43,7 @@ namespace ListDiffTests
 			Assert.Equal (2, adds.Length);
 			Assert.Equal (0, adds[0].Index);
 			Assert.Equal (2, adds[0].Items.Length);
-			Assert.Equal (2, adds[1].Index);
+			Assert.Equal (4, adds[1].Index);
 			Assert.Equal (2, adds[1].Items.Length);
 		}
 	}
