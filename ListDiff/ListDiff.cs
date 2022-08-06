@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace ListDiff
 {
@@ -88,7 +89,11 @@ namespace ListDiff
 		/// <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:ListDiff.ListDiffAction`2"/>.</returns>
 		public override string ToString ()
 		{
-			return string.Format ("{0} {1} {2}", ActionType, SourceItem, DestinationItem);
+			return ActionType switch {
+				ListDiffActionType.Update => $"Update {SourceItem} to {DestinationItem}",
+				ListDiffActionType.Add => $"Add {DestinationItem}",
+				_ => $"Remove {SourceItem}",
+			};
 		}
 	}
 
@@ -277,6 +282,153 @@ namespace ListDiff
 			}
 
 			return sb.ToString ();
+		}
+
+		/// <summary>
+		/// Returns two sets of operations to perform on the source list
+		/// in order to turn it into the destination list.
+		/// You should apply all of the removes first followed by the adds
+		/// in order for the indexing to be correct.
+		/// </summary>
+		/// <returns>An array of the indices of items to remove and an array of items to add.</returns>
+		public ((int Index, int Count)[] Removes, (int Index, D[] Items)[] Adds) GetRemovesAndAdds ()
+		{
+			var rems = new List<int> ();
+			var adds = new List<(int Index, D Item)> ();
+
+			//
+			// Calculate indices assuming all removes
+			// happend before the adds
+			//
+			var remIndex = 0;
+			var addIndex = 0;
+			foreach (var action in Actions) {
+				switch (action.ActionType) {
+					case ListDiffActionType.Update:
+						remIndex++;
+						addIndex++;
+						break;
+					case ListDiffActionType.Add:
+						adds.Add ((addIndex, action.DestinationItem!));
+						addIndex++;
+						break;
+					case ListDiffActionType.Remove:
+						rems.Add (remIndex);
+						break;
+				}
+			}
+
+			//
+			// Group the removes and adds into ranges
+			//
+			var orems = new List<(int Index, int Count)> ();
+			var rn = rems.Count;
+			for (var ri = 0; ri < rn;) {
+				var index = rems[ri];
+				var sri = ri;
+				ri++;
+				while (ri < rn && rems[ri] == index) {
+					ri++;
+				}
+				orems.Add ((index, ri - sri));
+			}
+			var oadds = new List<(int Index, D[] Items)> ();
+			var an = adds.Count;
+			for (var ai = 0; ai < an;) {
+				var (index, item) = adds[ai];
+				var items = new List<D> { item };
+				ai++;
+				var eindex = index + 1;
+				while (ai < an && adds[ai].Index == eindex) {
+					items.Add (adds[ai].Item);
+					eindex++;
+					ai++;
+				}
+				oadds.Add ((index, items.ToArray ()));
+			}
+
+			return (orems.ToArray(), oadds.ToArray());
+		}
+
+		/// <summary>
+		/// Returns two sets of operations (removes and adds) to perform on the source list
+		/// in order to turn it into the destination list.
+		/// The indices of the removes are relative to the source list.
+		/// The indices of the adds are relative to the source list with all
+		/// of the removes applied.
+		/// <para>
+		/// It should be noted that these indices do not account for previous
+		/// operations in their set. All removes are relative to the source collection
+		/// (ignoring other removes) and all adds are relative to the collection
+		/// after the deletes (ignoring other adds).
+		/// This allows the order of any removes or any adds to be arbitrary
+		/// (but all the removes have to happen before any of the adds).
+		/// </para>
+		/// <para>
+		/// This is weird, I know. But very useful when updating NSCollectionViews.
+		/// </para>
+		/// </summary>
+		/// <returns>An array of the indices of items to remove and an array of items to add.</returns>
+		public ((int Index, int Count)[] Removes, (int Index, D[] Items)[] Adds) GetBatchRemovesAndAdds ()
+		{
+			var rems = new List<int> ();
+			var adds = new List<(int Index, D Item)> ();
+
+			//
+			// Calculate indices assuming all removes
+			// happend before the adds
+			//
+			var remIndex = 0;
+			var addIndex = 0;
+			foreach (var action in Actions) {
+				switch (action.ActionType) {
+					case ListDiffActionType.Update:
+						remIndex++;
+						addIndex++;
+						break;
+					case ListDiffActionType.Add:
+						adds.Add ((addIndex, action.DestinationItem!));
+						addIndex++;
+						break;
+					case ListDiffActionType.Remove:
+						rems.Add (remIndex);
+						remIndex++;
+						break;
+				}
+			}
+
+			//
+			// Group the removes and adds into ranges
+			//
+			var orems = new List<(int Index, int Count)> ();
+			var rn = rems.Count;
+			for (var ri = 0; ri < rn;) {
+				var index = rems[ri];
+				var sri = ri;
+				ri++;
+				var eindex = index + 1;
+				while (ri < rn && rems[ri] == eindex) {
+					eindex++;
+					ri++;
+				}
+				orems.Add ((index, ri - sri));
+			}
+			var oadds = new List<(int Index, D[] Items)> ();
+			var an = adds.Count;
+			for (var ai = 0; ai < an;) {
+				var (index, item) = adds[ai];
+				var items = new List<D> { item };
+				ai++;
+				var eindex = index + 1;
+				while (ai < an && adds[ai].Index == eindex) {
+					items.Add (adds[ai].Item);
+					eindex++;
+					ai++;
+				}
+				oadds.Add ((index, items.ToArray ()));
+			}
+
+			return (orems.ToArray (), oadds.ToArray ());
 		}
 	}
 
