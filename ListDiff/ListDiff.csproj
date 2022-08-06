@@ -10,6 +10,15 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <PackageId>ListDiff</PackageId>
+    <Version>1.2.0</Version>
+    <PackageTitle>ListDiff</PackageTitle>
+    <PackageDescription>Calculate a diff between any two lists and optionally merge them to aid in synchronizing data.</PackageDescription>
+    <PackageAuthors>Frank A. Krueger</PackageAuthors>
+    <PackageOwners>Frank A. Krueger</PackageOwners>
+    <PackageLicenseType>MIT</PackageLicenseType>
+    <PackageProjectUrl>https://github.com/praeclarum/ListDiff</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
