@@ -1,6 +1,6 @@
 # ListDiff
 
-[![NuGet Package](https://img.shields.io/nuget/v/ListDiff.svg)](https://www.nuget.org/packages/ListDiff)
+[![Build and Test](https://github.com/praeclarum/ListDiff/actions/workflows/build.yml/badge.svg)](https://github.com/praeclarum/ListDiff/actions/workflows/build.yml) [![NuGet Package](https://img.shields.io/nuget/v/ListDiff.svg)](https://www.nuget.org/packages/ListDiff)
 
 Calculate a diff between any two lists and optionally merge them to aid in synchronizing data.
 
