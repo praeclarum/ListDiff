@@ -1,0 +1,40 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Update Versions
+      env:
+        VERSION_PREFIX: 1.2
+        VERSION_SUFFIX: ${{github.run_number}}
+      run: |
+        VERSION=$VERSION_PREFIX.$VERSION_SUFFIX
+        sed "s:<Version>1.0.0</Version>:<Version>$VERSION</Version>:g" ListDiff/ListDiff.csproj
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.301
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore -c Release
+    - name: Test
+      run: dotnet test --no-build --verbosity normal -c Release
+    - name: Pack
+      run: |
+        mkdir -p artifacts
+        dotnet pack --no-build -c Release --include-symbols -o artifacts
+    - name: Archive
+      uses: actions/upload-artifact@master
+      with:
+        path: artifacts
