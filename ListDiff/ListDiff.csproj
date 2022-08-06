@@ -17,7 +17,7 @@
     <PackageDescription>Calculate a diff between any two lists and optionally merge them to aid in synchronizing data.</PackageDescription>
     <PackageAuthors>Frank A. Krueger</PackageAuthors>
     <PackageOwners>Frank A. Krueger</PackageOwners>
-    <PackageLicenseType>MIT</PackageLicenseType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/praeclarum/ListDiff</PackageProjectUrl>
   </PropertyGroup>
 
